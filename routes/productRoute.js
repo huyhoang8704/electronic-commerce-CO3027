@@ -74,7 +74,7 @@ const upload = multer({ storage });
  *     tags: [Product]
  *     parameters:
  *       - in: query
- *         name: category
+ *         name: categoryID
  *         schema:
  *           type: string
  *       - in: query
