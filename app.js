@@ -31,7 +31,7 @@ app.use(cookieParser());
 
 
 
-app.get('/healthcheck',(req, res) => {
+app.get('/',(req, res) => {
     res.send('API is running...')
 })
 
