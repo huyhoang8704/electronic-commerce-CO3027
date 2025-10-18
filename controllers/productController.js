@@ -1,6 +1,7 @@
 const Product = require('../models/Product');
 const supabase = require('../config/supabase');
 const path = require('path');
+const pagination = require('../helpers/pagination');
 
 // 🟢 Upload nhiều ảnh lên Supabase
 const uploadImagesToSupabase = async (files) => {
@@ -68,8 +69,31 @@ exports.getProducts = async (req, res) => {
         if (type) query.type = type;
         if (search) query.name = { $regex: search, $options: 'i' };
 
-        const products = await Product.find(query).populate('category');
-        res.json(products);
+        //pagination
+        const countProducts = await Product.countDocuments(query)
+        let objectPagination = pagination({
+            currentPage: 1,
+            limitItems: 5
+        },req.query, countProducts)
+        // Query dữ liệu có phân trang
+        const products = await Product.find(query)
+        .populate('category')
+        .skip(objectPagination.skip)
+        .limit(objectPagination.limitItems)
+        .sort({ createdAt: -1 });
+
+        //const products = await Product.find(query).populate('category');
+        // res.json(products);
+        return res.status(200).json({
+            code: 0,
+            status: 200,
+            message: 'Lấy danh sách sản phẩm thành công',
+            data: {
+              pagination: objectPagination,
+              totalProducts: countProducts,
+              products
+            }
+          });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
