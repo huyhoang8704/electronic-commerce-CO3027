@@ -1,10 +1,14 @@
 const swaggerJsdoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
-
 require("dotenv").config();
 
 const PORT = process.env.PORT || 4000;
-const BASE_URL = "https://electronic-commerce-co-3027.vercel.app";
+
+// ✅ Nếu deploy trên Vercel, VERCEL_URL sẽ có dạng "your-app.vercel.app"
+const isVercel = !!process.env.VERCEL_URL;
+const BASE_URL = isVercel
+  ? `https://${process.env.VERCEL_URL}` // dùng domain thực của Vercel
+  : `http://localhost:${PORT}`;        // còn nếu chạy local thì dùng localhost
 
 const options = {
   definition: {
@@ -17,11 +21,7 @@ const options = {
     servers: [
       {
         url: BASE_URL,
-        description: "Production server (Vercel)",
-      },
-      {
-        url: `http://localhost:${PORT}`,
-        description: "Local development server",
+        description: isVercel ? "Production (Vercel)" : "Local development",
       },
     ],
     components: {
@@ -43,9 +43,11 @@ const swaggerSpec = swaggerJsdoc(options);
 function swaggerDocs(app) {
   app.use(
     "/api-docs",
-    swaggerUi.serveFiles(swaggerSpec, {}),
-    swaggerUi.setup(swaggerSpec)
+    swaggerUi.serve,
+    swaggerUi.setup(swaggerSpec, { explorer: true })
   );
+
+  console.log(`✅ Swagger docs available at ${BASE_URL}/api-docs`);
 }
 
 module.exports = swaggerDocs;
