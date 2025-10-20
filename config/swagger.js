@@ -1,15 +1,18 @@
 const swaggerJsdoc = require("swagger-jsdoc");
+const path = require("path");
+const express = require("express");
 const swaggerUi = require("swagger-ui-express");
+const swaggerUiDist = require("swagger-ui-dist");
 require("dotenv").config();
 
 const PORT = process.env.PORT || 4000;
 
-// ✅ Nếu deploy trên Vercel, VERCEL_URL sẽ có dạng "your-app.vercel.app"
 const isVercel = !!process.env.VERCEL_URL;
 const BASE_URL = isVercel
-  ? `https://${process.env.VERCEL_URL}` // dùng domain thực của Vercel
-  : `http://localhost:${PORT}`;        // còn nếu chạy local thì dùng localhost
+  ? `https://${process.env.VERCEL_URL}`
+  : `http://localhost:${PORT}`;
 
+// ✅ Swagger definition
 const options = {
   definition: {
     openapi: "3.0.0",
@@ -41,40 +44,54 @@ const options = {
 const swaggerSpec = swaggerJsdoc(options);
 
 function swaggerDocs(app) {
-  const isVercel = !!process.env.VERCEL_URL;
-
   if (isVercel) {
-    // Dùng CDN Swagger UI trên Vercel
+    // ✅ Dùng swagger-ui-dist khi chạy trên Vercel
+    const swaggerUiPath = swaggerUiDist.getAbsoluteFSPath();
+    app.use("/swagger-ui", express.static(swaggerUiPath));
+
+    // Serve swagger.json
+    app.get("/swagger.json", (req, res) => {
+      res.setHeader("Content-Type", "application/json");
+      res.send(swaggerSpec);
+    });
+
+    // Serve giao diện Swagger
     app.get("/api-docs", (req, res) => {
       res.setHeader("Content-Type", "text/html");
       res.send(`
         <!DOCTYPE html>
-        <html>
-          <head>
-            <title>Swagger UI</title>
-            <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist/swagger-ui.css" />
-          </head>
-          <body>
-            <div id="swagger-ui"></div>
-            <script src="https://unpkg.com/swagger-ui-dist/swagger-ui-bundle.js"></script>
-            <script>
-              const ui = SwaggerUIBundle({
+        <html lang="en">
+        <head>
+          <meta charset="UTF-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+          <title>Swagger UI</title>
+          <link rel="stylesheet" href="/swagger-ui/swagger-ui.css" />
+        </head>
+        <body>
+          <div id="swagger-ui"></div>
+          <script src="/swagger-ui/swagger-ui-bundle.js"></script>
+          <script src="/swagger-ui/swagger-ui-standalone-preset.js"></script>
+          <script>
+            window.onload = function() {
+              SwaggerUIBundle({
                 url: '/swagger.json',
-                dom_id: '#swagger-ui'
+                dom_id: '#swagger-ui',
+                presets: [SwaggerUIBundle.presets.apis, SwaggerUIStandalonePreset],
+                layout: "BaseLayout",
               });
-            </script>
-          </body>
+            };
+          </script>
+        </body>
         </html>
       `);
     });
-    app.get("/swagger.json", (req, res) => res.json(swaggerSpec));
+
+    console.log(`✅ Swagger (Vercel) at ${BASE_URL}/api-docs`);
   } else {
-    // Dùng swagger-ui-express khi chạy local
-    app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+    // ✅ Dùng swagger-ui-express khi chạy local
+    app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec, { explorer: true }));
+    console.log(`✅ Swagger (Local) at ${BASE_URL}/api-docs`);
   }
-
-  console.log(`✅ Swagger docs available at ${isVercel ? "Vercel" : "Local"} /api-docs`);
 }
-
 
 module.exports = swaggerDocs;
