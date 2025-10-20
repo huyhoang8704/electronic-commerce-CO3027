@@ -6,13 +6,11 @@ const swaggerUiDist = require("swagger-ui-dist");
 require("dotenv").config();
 
 const PORT = process.env.PORT || 4000;
-
 const isVercel = !!process.env.VERCEL_URL;
 const BASE_URL = isVercel
   ? `https://${process.env.VERCEL_URL}`
   : `http://localhost:${PORT}`;
 
-// ✅ Swagger definition
 const options = {
   definition: {
     openapi: "3.0.0",
@@ -45,19 +43,36 @@ const swaggerSpec = swaggerJsdoc(options);
 
 function swaggerDocs(app) {
   if (isVercel) {
-    // ✅ Dùng swagger-ui-dist khi chạy trên Vercel
-    const swaggerUiPath = swaggerUiDist.getAbsoluteFSPath();
-    app.use("/swagger-ui", express.static(swaggerUiPath));
+    // ✅ Serve static swagger-ui-dist thủ công để có đúng MIME type
+    const swaggerPath = swaggerUiDist.getAbsoluteFSPath();
 
-    // Serve swagger.json
+    app.get("/swagger-ui/:file", (req, res) => {
+      const filePath = path.join(swaggerPath, req.params.file);
+      if (req.params.file.endsWith(".css")) {
+        res.type("text/css");
+      } else if (req.params.file.endsWith(".js")) {
+        res.type("application/javascript");
+      }
+      res.sendFile(filePath, (err) => {
+        if (err) {
+          res.status(404).send("Not found");
+        }
+      });
+    });
+
+    // ✅ Serve swagger.json
     app.get("/swagger.json", (req, res) => {
       res.setHeader("Content-Type", "application/json");
       res.send(swaggerSpec);
     });
 
-    // Serve giao diện Swagger
+    // ✅ Serve giao diện Swagger UI, có header CSP để cho phép inline script
     app.get("/api-docs", (req, res) => {
-      res.setHeader("Content-Type", "text/html");
+      res.setHeader(
+        "Content-Security-Policy",
+        "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';"
+      );
+      res.type("html");
       res.send(`
         <!DOCTYPE html>
         <html lang="en">
@@ -86,11 +101,10 @@ function swaggerDocs(app) {
       `);
     });
 
-    console.log(`✅ Swagger (Vercel) at ${BASE_URL}/api-docs`);
+    console.log(`✅ Swagger (Vercel) ready at ${BASE_URL}/api-docs`);
   } else {
-    // ✅ Dùng swagger-ui-express khi chạy local
     app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec, { explorer: true }));
-    console.log(`✅ Swagger (Local) at ${BASE_URL}/api-docs`);
+    console.log(`✅ Swagger (Local) ready at ${BASE_URL}/api-docs`);
   }
 }
 
