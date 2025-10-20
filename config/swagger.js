@@ -1,8 +1,8 @@
-const swaggerJsdoc = require("swagger-jsdoc");
 const path = require("path");
-const express = require("express");
+const swaggerJsdoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
 const swaggerUiDist = require("swagger-ui-dist");
+const express = require("express");
 require("dotenv").config();
 
 const PORT = process.env.PORT || 4000;
@@ -25,16 +25,6 @@ const options = {
         description: isVercel ? "Production (Vercel)" : "Local development",
       },
     ],
-    components: {
-      securitySchemes: {
-        bearerAuth: {
-          type: "http",
-          scheme: "bearer",
-          bearerFormat: "JWT",
-        },
-      },
-    },
-    security: [{ bearerAuth: [] }],
   },
   apis: ["./routes/*.js"],
 };
@@ -42,37 +32,29 @@ const options = {
 const swaggerSpec = swaggerJsdoc(options);
 
 function swaggerDocs(app) {
+  const swaggerDistPath = swaggerUiDist.getAbsoluteFSPath();
+
   if (isVercel) {
-    // ✅ Serve static swagger-ui-dist thủ công để có đúng MIME type
-    const swaggerPath = swaggerUiDist.getAbsoluteFSPath();
+    // ✅ 1. Serve static Swagger UI assets (JS/CSS)
+    app.use("/swagger-ui", express.static(swaggerDistPath, {
+      setHeaders: (res, filePath) => {
+        if (filePath.endsWith(".css")) res.type("text/css");
+        if (filePath.endsWith(".js")) res.type("application/javascript");
+      },
+    }));
 
-    app.get("/swagger-ui/:file", (req, res) => {
-      const filePath = path.join(swaggerPath, req.params.file);
-      if (req.params.file.endsWith(".css")) {
-        res.type("text/css");
-      } else if (req.params.file.endsWith(".js")) {
-        res.type("application/javascript");
-      }
-      res.sendFile(filePath, (err) => {
-        if (err) {
-          res.status(404).send("Not found");
-        }
-      });
-    });
-
-    // ✅ Serve swagger.json
+    // ✅ 2. Serve swagger.json
     app.get("/swagger.json", (req, res) => {
       res.setHeader("Content-Type", "application/json");
       res.send(swaggerSpec);
     });
 
-    // ✅ Serve giao diện Swagger UI, có header CSP để cho phép inline script
+    // ✅ 3. Serve swagger UI page
     app.get("/api-docs", (req, res) => {
       res.setHeader(
         "Content-Security-Policy",
         "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';"
       );
-      res.type("html");
       res.send(`
         <!DOCTYPE html>
         <html lang="en">
@@ -80,7 +62,7 @@ function swaggerDocs(app) {
           <meta charset="UTF-8" />
           <meta name="viewport" content="width=device-width, initial-scale=1.0" />
           <title>Swagger UI</title>
-          <link rel="stylesheet" href="/swagger-ui/swagger-ui.css" />
+          <link rel="stylesheet" type="text/css" href="/swagger-ui/swagger-ui.css" />
         </head>
         <body>
           <div id="swagger-ui"></div>
@@ -103,7 +85,8 @@ function swaggerDocs(app) {
 
     console.log(`✅ Swagger (Vercel) ready at ${BASE_URL}/api-docs`);
   } else {
-    app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec, { explorer: true }));
+    // ✅ Local dùng swagger-ui-express như bình thường
+    app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
     console.log(`✅ Swagger (Local) ready at ${BASE_URL}/api-docs`);
   }
 }
