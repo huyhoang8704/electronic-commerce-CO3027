@@ -41,13 +41,40 @@ const options = {
 const swaggerSpec = swaggerJsdoc(options);
 
 function swaggerDocs(app) {
-  app.use(
-    "/api-docs",
-    swaggerUi.serve,
-    swaggerUi.setup(swaggerSpec, { explorer: true })
-  );
+  const isVercel = !!process.env.VERCEL_URL;
 
-  console.log(`✅ Swagger docs available at ${BASE_URL}/api-docs`);
+  if (isVercel) {
+    // Dùng CDN Swagger UI trên Vercel
+    app.get("/api-docs", (req, res) => {
+      res.setHeader("Content-Type", "text/html");
+      res.send(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>Swagger UI</title>
+            <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist/swagger-ui.css" />
+          </head>
+          <body>
+            <div id="swagger-ui"></div>
+            <script src="https://unpkg.com/swagger-ui-dist/swagger-ui-bundle.js"></script>
+            <script>
+              const ui = SwaggerUIBundle({
+                url: '/swagger.json',
+                dom_id: '#swagger-ui'
+              });
+            </script>
+          </body>
+        </html>
+      `);
+    });
+    app.get("/swagger.json", (req, res) => res.json(swaggerSpec));
+  } else {
+    // Dùng swagger-ui-express khi chạy local
+    app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+  }
+
+  console.log(`✅ Swagger docs available at ${isVercel ? "Vercel" : "Local"} /api-docs`);
 }
+
 
 module.exports = swaggerDocs;
