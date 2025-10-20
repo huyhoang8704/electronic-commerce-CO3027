@@ -15,12 +15,35 @@ const authorize = require('../middlewares/authRoleMiddleware').authorize;
  * @swagger
  * components:
  *   schemas:
- *     User:
+ *     SendOtpRequest:
+ *       type: object
+ *       required:
+ *         - email
+ *       properties:
+ *         email:
+ *           type: string
+ *           example: "hoang@gmail.com"
+ *
+ *     VerifyOtpRequest:
+ *       type: object
+ *       required:
+ *         - email
+ *         - otp
+ *       properties:
+ *         email:
+ *           type: string
+ *           example: "hoang@gmail.com"
+ *         otp:
+ *           type: string
+ *           example: "123456"
+ *
+ *     UserRegister:
  *       type: object
  *       required:
  *         - name
  *         - email
  *         - password
+ *         - phone
  *       properties:
  *         name:
  *           type: string
@@ -38,22 +61,82 @@ const authorize = require('../middlewares/authRoleMiddleware').authorize;
 
 /**
  * @swagger
- * /api/auth/register:
+ * /api/auth/send-otp:
  *   post:
- *     summary: Register new user
+ *     summary: Send OTP to verify email (fake send)
  *     tags: [Auth]
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/User'
+ *             $ref: '#/components/schemas/SendOtpRequest'
+ *     responses:
+ *       200:
+ *         description: OTP sent successfully (fake)
+ *         content:
+ *           application/json:
+ *             example:
+ *               message: "OTP sent successfully (fake)"
+ *               fakeOtp: "123456"
+ *       400:
+ *         description: Email already registered or invalid input
+ */
+
+/**
+ * @swagger
+ * /api/auth/verify-otp:
+ *   post:
+ *     summary: Verify OTP for email confirmation
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/VerifyOtpRequest'
+ *     responses:
+ *       200:
+ *         description: OTP verified successfully
+ *         content:
+ *           application/json:
+ *             example:
+ *               message: "OTP verified successfully"
+ *       400:
+ *         description: Invalid or expired OTP
+ */
+
+/**
+ * @swagger
+ * /api/auth/register:
+ *   post:
+ *     summary: Register new user (after OTP verification)
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/UserRegister'
  *     responses:
  *       201:
  *         description: User registered successfully
+ *         content:
+ *           application/json:
+ *             example:
+ *               message: "Registration successful"
+ *               token: "jwt-token-here"
+ *               user:
+ *                 id: "6714c92c512abcc11e8e63d1"
+ *                 name: "Nguyen Van A"
+ *                 email: "hoang@gmail.com"
+ *                 phone: "0912345678"
  *       400:
- *         description: Email already exists
+ *         description: Email not verified or already registered
  */
+
+router.post('/send-otp', AuthController.sendOtp);
+router.post('/verify-otp', AuthController.verifyOtp);
 router.post('/register', AuthController.register);
 
 
