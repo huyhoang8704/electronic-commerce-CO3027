@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const OtpVerification = require('../models/OtpVerification');
 
 
 // Hàm tạo JWT
@@ -10,28 +11,104 @@ function signToken(user) {
         { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
     );
 }
+const sendOtp = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ error: "Email is required" });
 
+    const existingUser = await User.findOne({ email });
+    if (existingUser)
+      return res.status(400).json({ error: "Email already registered" });
+
+    await OtpVerification.deleteMany({ email });
+
+    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpExpires = new Date(Date.now() + 5 * 60 * 1000);
+
+    await OtpVerification.create({
+      email,
+      otpCode,
+      otpExpires,
+      isVerified: false,
+    });
+
+    console.log(`OTP for ${email}: ${otpCode}`);
+
+    return res.status(200).json({
+      message: "OTP sent successfully (fake)",
+      fakeOtp: otpCode, // test only
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+const verifyOtp = async (req, res, next) => {
+  try {
+    const { email, otp } = req.body;
+    if (!email || !otp)
+      return res.status(400).json({ error: "Email and OTP required" });
+
+    const record = await OtpVerification.findOne({ email });
+    if (!record) return res.status(400).json({ error: "OTP not found" });
+
+    if (record.otpCode !== otp)
+      return res.status(400).json({ error: "Invalid OTP" });
+
+    if (record.otpExpires < Date.now())
+      return res.status(400).json({ error: "OTP expired" });
+
+    record.isVerified = true;
+    await record.save();
+
+    res.status(200).json({ message: "OTP verified successfully" });
+  } catch (err) {
+    next(err);
+  }
+};
 
 // Đăng ký (user)
 const register = async (req, res, next) => {
-    try {
-        const { name, email, password, phone } = req.body;
-        if (!name || !email || !password || !phone) return res.status(400).json({ error: 'Please provide name, email, password and phone number' });
-        const existingEmail = await User.findOne({ email });
-        if (existingEmail) return res.status(400).json({ error: 'Email already registered' });
+  try {
+    const { email, name, password, phone } = req.body;
 
-        const existingPhone = await User.findOne({ phone });
-        if (existingPhone) return res.status(400).json({ error: 'Phone number already registered' });
+    if (!email || !name || !password || !phone)
+      return res.status(400).json({ error: "Missing required fields" });
 
-        // Tạo user với role user
-        const user = await User.create({ name, email, password, phone, role: 'user' });
-        const token = signToken(user);
+    const otpRecord = await OtpVerification.findOne({ email });
+    if (!otpRecord || !otpRecord.isVerified)
+      return res.status(400).json({ error: "Email not verified" });
 
-        res.status(201).json({
-            token,
-            user: { id: user._id, name: user.name, email: user.email, phone: user.phone, role: user.role }
-        });
-    } catch (err) { next(err); }
+    const existingUser = await User.findOne({ email });
+    if (existingUser)
+      return res.status(400).json({ error: "Email already registered" });
+
+    const user = await User.create({
+      name,
+      email,
+      password,
+      phone,
+      role: "user",
+    });
+
+    // Xóa record OTP sau khi đăng ký thành công
+    await OtpVerification.deleteOne({ email });
+
+    const token = signToken(user);
+
+    res.status(201).json({
+      message: "Registration successful",
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
 };
 // Đăng ký (admin)
 const registerAdmin = async (req, res) => {
@@ -83,5 +160,7 @@ module.exports = {
     register, 
     login, 
     me,
-    registerAdmin, 
+    registerAdmin,
+    sendOtp,
+    verifyOtp, 
 };

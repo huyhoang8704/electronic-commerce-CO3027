@@ -54,9 +54,19 @@ exports.createProduct = async (req, res) => {
             images: imageUrls
         });
 
-        res.status(201).json({ message: 'Product created successfully', product });
+        res.status(201).json({
+            code: 0,
+            status: 201,
+            message: 'Tạo sản phẩm thành công',
+            data: product
+        });
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        res.status(500).json({
+            code: 1,
+            status: 500,
+            message: err.message,
+            data: null
+        });
     }
 };
 
@@ -95,7 +105,12 @@ exports.getProducts = async (req, res) => {
             }
           });
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        res.status(500).json({
+            code: 1,
+            status: 500,
+            message: err.message,
+            data: null
+        });
     }
 };
 
@@ -104,9 +119,19 @@ exports.getProductById = async (req, res) => {
     try {
         const product = await Product.findById(req.params.id).populate('category');
         if (!product) return res.status(404).json({ message: 'Product not found' });
-        res.json(product);
+        res.status(200).json({
+            code: 0,
+            status: 200,
+            message: 'Lấy chi tiết sản phẩm thành công',
+            data: product
+        });
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        res.status(500).json({ 
+            code: 1,
+            status: 500,
+            message: err.message,
+            data: null
+        });
     }
 };
 
@@ -114,7 +139,12 @@ exports.getProductById = async (req, res) => {
 exports.updateProduct = async (req, res) => {
     try {
         const product = await Product.findById(req.params.id);
-        if (!product) return res.status(404).json({ message: 'Product not found' });
+        if (!product) return res.status(404).json({ 
+            code: 1,
+            status: 404,
+            message: 'Không tìm thấy sản phẩm',
+            data: null
+        });
 
         // Upload ảnh mới nếu có
         if (req.files && req.files.length > 0) {
@@ -125,9 +155,19 @@ exports.updateProduct = async (req, res) => {
         Object.assign(product, req.body);
         await product.save();
 
-        res.json({ message: 'Product updated successfully', product });
+        res.status(200).json({
+            code: 0,
+            status: 200,
+            message: 'Cập nhật sản phẩm thành công',
+            data: product
+        });
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        res.status(500).json({
+            code: 1,
+            status: 500,
+            message: err.message,
+            data: null
+        });
     }
 };
 
@@ -135,9 +175,24 @@ exports.updateProduct = async (req, res) => {
 exports.deleteProduct = async (req, res) => {
     try {
         const product = await Product.findByIdAndDelete(req.params.id);
-        if (!product) return res.status(404).json({ message: 'Product not found' });
-        res.json({ message: 'Product deleted successfully' });
+        if (!product) return res.status(404).json({ 
+            code: 1,
+            status: 404,
+            message: 'Không tìm thấy sản phẩm',
+            data: null
+        });
+        res.status(200).json({
+            code: 0,
+            status: 200,
+            message: 'Xóa sản phẩm thành công',
+            data: null
+        });
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        res.status(500).json({
+            code: 1,
+            status: 500,
+            message: err.message,
+            data: null
+        });
     }
 };
