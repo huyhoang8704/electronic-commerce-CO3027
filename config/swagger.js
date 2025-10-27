@@ -22,9 +22,24 @@ const options = {
         description: isVercel ? "Production (Vercel)" : "Local development",
       },
     ],
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: "http",
+          scheme: "bearer",
+          bearerFormat: "JWT",
+        },
+      },
+    },
+    security: [
+      {
+        bearerAuth: [],
+      },
+    ],
   },
   apis: ["./routes/*.js"],
 };
+
 
 const swaggerSpec = swaggerJsdoc(options);
 
