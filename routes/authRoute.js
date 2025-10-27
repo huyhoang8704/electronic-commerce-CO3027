@@ -205,6 +205,6 @@ router.post('/login', AuthController.login);
  *       401:
  *         description: Unauthorized
  */
-router.get('/me', auth, AuthController.me);
+router.get('/me', auth, AuthController.getProfile);
 
 module.exports = router;

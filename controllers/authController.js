@@ -139,7 +139,7 @@ const login = async (req, res, next) => {
 
 
         const match = await user.comparePassword(password);
-        if (!match) return res.status(400).json({ error: 'Invalid credentials' });
+        if (!match) return res.status(400).json({ error: 'Password is incorrect' });
 
         const token = signToken(user);
 
@@ -151,16 +151,105 @@ const login = async (req, res, next) => {
 };
 
 
-// Lấy thông tin cá nhân (me)
-const me = async (req, res) => {
-    res.json({ user: req.user });
+const getProfile = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user.id).select('-password');
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    res.json({ user });
+  } catch (err) {
+    next(err);
+  }
 };
+
+const updateProfile = async (req, res, next) => {
+  try {
+    const { name, phone, address } = req.body;
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    if (name) user.name = name;
+    if (phone) user.phone = phone;
+    if (address) user.address = address;
+
+    await user.save();
+
+    res.json({
+      message: 'Profile updated successfully',
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        address: user.address
+      }
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+const changePassword = async (req, res, next) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword)
+      return res.status(400).json({ error: 'All password fields are required' });
+
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const isMatch = await user.comparePassword(currentPassword);
+    if (!isMatch)
+      return res.status(400).json({ error: 'Current password is incorrect' });
+
+    user.password = newPassword;
+    await user.save();
+
+    res.json({ message: 'Password changed successfully' });
+  } catch (err) {
+    next(err);
+  }
+};
+const updateEmailWithOtp = async (req, res, next) => {
+  try {
+    const { newEmail, otp } = req.body;
+    if (!newEmail || !otp)
+      return res.status(400).json({ error: 'New email and OTP are required' });
+
+    const record = await OtpVerification.findOne({ email: newEmail });
+    console.log(record);
+    if (!record)
+      return res.status(400).json({ error: 'Email not verified via OTP' });
+
+    // Kiểm tra trùng email
+    const existingUser = await User.findOne({ email: newEmail });
+    if (existingUser)
+      return res.status(400).json({ error: 'This email is already in use' });
+
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    user.email = newEmail;
+    await user.save();
+
+    await OtpVerification.deleteOne({ email: newEmail });
+
+    res.json({ message: 'Email updated successfully', email: user.email });
+  } catch (err) {
+    next(err);
+  }
+};
+
+
 
 module.exports = { 
     register, 
     login, 
-    me,
+    getProfile,
     registerAdmin,
     sendOtp,
-    verifyOtp, 
+    verifyOtp,
+    updateProfile,
+    changePassword,
+    updateEmailWithOtp,
 };

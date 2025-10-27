@@ -27,6 +27,11 @@ const userSchema = new mongoose.Schema(
             type: String,
             match: [/^\d{10,15}$/, 'Phone number must contain only digits and be between 10 to 15 characters long']
         },
+        address: {
+        type: String,
+        trim: true,
+        maxlength: [200, 'Address cannot exceed 200 characters']
+        },
         role: {
             type: String,
             enum: ['user', 'admin'],
