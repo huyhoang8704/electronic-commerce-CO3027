@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const OtpVerification = require('../models/OtpVerification');
+const { sendOtpEmail } = require('../config/email')
 
 
 // Hàm tạo JWT
@@ -11,6 +12,38 @@ function signToken(user) {
         { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
     );
 }
+// const sendOtp = async (req, res, next) => {
+//   try {
+//     const { email } = req.body;
+//     if (!email) return res.status(400).json({ error: "Email is required" });
+
+//     const existingUser = await User.findOne({ email });
+//     if (existingUser)
+//       return res.status(400).json({ error: "Email already registered" });
+
+//     await OtpVerification.deleteMany({ email });
+
+//     const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+//     const otpExpires = new Date(Date.now() + 5 * 60 * 1000);
+
+//     await OtpVerification.create({
+//       email,
+//       otpCode,
+//       otpExpires,
+//       isVerified: false,
+//     });
+
+//     console.log(`OTP for ${email}: ${otpCode}`);
+
+//     return res.status(200).json({
+//       message: "OTP sent successfully (fake)",
+//       fakeOtp: otpCode, // test only
+//     });
+//   } catch (err) {
+//     next(err);
+//   }
+// };
+
 const sendOtp = async (req, res, next) => {
   try {
     const { email } = req.body;
@@ -32,16 +65,18 @@ const sendOtp = async (req, res, next) => {
       isVerified: false,
     });
 
-    console.log(`OTP for ${email}: ${otpCode}`);
+    // Gửi OTP qua email thật
+    await sendOtpEmail(email, otpCode);
 
     return res.status(200).json({
-      message: "OTP sent successfully (fake)",
-      fakeOtp: otpCode, // test only
+      message: "OTP sent successfully to email",
     });
   } catch (err) {
+    console.error("Send OTP error:", err);
     next(err);
   }
 };
+
 
 const verifyOtp = async (req, res, next) => {
   try {
@@ -57,6 +92,9 @@ const verifyOtp = async (req, res, next) => {
 
     if (record.otpExpires < Date.now())
       return res.status(400).json({ error: "OTP expired" });
+
+    if (record.isVerified)
+      return res.status(400).json({ error: "OTP already verified" });
 
     record.isVerified = true;
     await record.save();

@@ -63,7 +63,7 @@ const authorize = require('../middlewares/authRoleMiddleware').authorize;
  * @swagger
  * /api/auth/send-otp:
  *   post:
- *     summary: Send OTP to verify email (fake send)
+ *     summary: Send OTP to verify email (done)
  *     tags: [Auth]
  *     requestBody:
  *       required: true
@@ -73,11 +73,11 @@ const authorize = require('../middlewares/authRoleMiddleware').authorize;
  *             $ref: '#/components/schemas/SendOtpRequest'
  *     responses:
  *       200:
- *         description: OTP sent successfully (fake)
+ *         description: OTP sent successfully
  *         content:
  *           application/json:
  *             example:
- *               message: "OTP sent successfully (fake)"
+ *               message: "OTP sent successfully"
  *               fakeOtp: "123456"
  *       400:
  *         description: Email already registered or invalid input
