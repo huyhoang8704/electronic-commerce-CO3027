@@ -132,14 +132,21 @@ router.get('/:id', productController.getProductById);
  *                 enum: [software, hardware, combo]
  *               description:
  *                 type: string
+ *                 example: "Phần mềm quản lý bán hàng cho cửa hàng bán lẻ"
  *               price:
  *                 type: number
+ *                 example: 5000000
+ *               percentDiscount:
+ *                 type: number
+ *                 example: 10
  *               category:
  *                 type: string
+ *                 example: "69023b1f68845dd2cc425197"
  *               stock:
  *                 type: number
  *               warranty:
  *                 type: string
+ *                 example: "12 tháng"
  *               servicePackage:
  *                 type: string
  *                 example: '{"mode":"SaaS","duration":"1 năm"}'

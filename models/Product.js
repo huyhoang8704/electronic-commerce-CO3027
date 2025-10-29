@@ -6,6 +6,7 @@ const productSchema = new mongoose.Schema(
         type: { type: String, enum: ['software', 'hardware', 'combo'], required: true },
         description: String,
         price: { type: Number, required: [true, 'Price is required'], min: 0 },
+        percentDiscount: { type: Number, default: 0, min: 0, max: 100 },
         category: { type: mongoose.Schema.Types.ObjectId, ref: 'Category' },
         stock: { type: Number, default: 0 },
         warranty: String,
