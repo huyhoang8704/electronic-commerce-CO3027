@@ -25,7 +25,7 @@ async function sendOtpEmail(to, otpCode) {
           
           <!-- Logo -->
           <div style="margin-bottom: 20px;">
-            <img src="https://jwiitopxryltgtkbmcsb.supabase.co/storage/v1/object/public/materials/1760114622084-pllu5pxr0h.jpg" alt="BK Soft Solutions Logo" style="width: 120px; height: auto;">
+            <img src="https://jwiitopxryltgtkbmcsb.supabase.co/storage/v1/object/public/materials/1761753208600-ukz07htiw78.png" alt="BK Soft Solutions Logo" style="width: 120px; height: auto;">
           </div>
 
           <h2 style="color: #2E86DE; margin-bottom: 10px;">Xin chào,</h2>
