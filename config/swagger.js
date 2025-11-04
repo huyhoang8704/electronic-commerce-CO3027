@@ -3,10 +3,12 @@ const swaggerUi = require("swagger-ui-express");
 require("dotenv").config();
 
 const PORT = process.env.PORT || 4000;
-const isVercel = !!process.env.VERCEL_URL;
-const BASE_URL = isVercel
-  ? `https://${process.env.VERCEL_URL}`
-  : `http://localhost:${PORT}`;
+const NODE_ENV = process.env.NODE_ENV || "development";
+
+const BASE_URL =
+  NODE_ENV === "production"
+    ? "https://electronic-commerce-co3027.onrender.com"
+    : `http://localhost:${PORT}`;
 
 const options = {
   definition: {
@@ -19,7 +21,10 @@ const options = {
     servers: [
       {
         url: BASE_URL,
-        description: isVercel ? "Production (Vercel)" : "Local development",
+        description:
+          NODE_ENV === "production"
+            ? "Production (Render)"
+            : "Local development",
       },
     ],
     components: {
@@ -40,11 +45,10 @@ const options = {
   apis: ["./routes/*.js"],
 };
 
-
 const swaggerSpec = swaggerJsdoc(options);
 
-// ✅ Dùng CDN CSS để tránh CSP + lỗi MIME
-const CSS_URL = "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.1.0/swagger-ui.min.css";
+const CSS_URL =
+  "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.1.0/swagger-ui.min.css";
 
 function swaggerDocs(app) {
   app.use(
