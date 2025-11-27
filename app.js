@@ -1,4 +1,4 @@
-const express = require('express');
+const express = require("express");
 const app = express();
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
@@ -7,18 +7,19 @@ const morgan = require("morgan");
 const path = require("path");
 require("dotenv").config();
 
-const connectDB = require('./config/mongoDB');
-const swaggerDocs = require('./config/swagger');
-const authRoutes = require('./routes/authRoute');
-const companyRoutes = require('./routes/companyRoute');
-const categoriesRoutes = require('./routes/categoryRoute');
-const productRoutes = require('./routes/productRoute');
-const userProfileRoutes = require('./routes/userProfileRoute');
-const chatRoutes = require('./routes/chatRoute');
+const connectDB = require("./config/mongoDB");
+const swaggerDocs = require("./config/swagger");
+const authRoutes = require("./routes/authRoute");
+const companyRoutes = require("./routes/companyRoute");
+const categoriesRoutes = require("./routes/categoryRoute");
+const productRoutes = require("./routes/productRoute");
+const userProfileRoutes = require("./routes/userProfileRoute");
+const chatRoutes = require("./routes/chatRoute");
+const cartRoutes = require("./routes/cartRoute");
 
 const port = process.env.PORT || 3000;
 
-connectDB.connect();  // Connect to MongoDB
+connectDB.connect(); // Connect to MongoDB
 
 app.use(express.json());
 app.use(cors());
@@ -27,18 +28,18 @@ app.use(morgan("dev"));
 
 swaggerDocs(app); // Initialize Swagger documentation
 
-app.use('/api/auth', authRoutes);
-app.use('/api/user/profile', userProfileRoutes);
-app.use('/api/company', companyRoutes);
-app.use('/api/categories', categoriesRoutes);
-app.use('/api/products', productRoutes);
-app.use('/api/chat', chatRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/user/profile", userProfileRoutes);
+app.use("/api/cart", cartRoutes);
+app.use("/api/company", companyRoutes);
+app.use("/api/categories", categoriesRoutes);
+app.use("/api/products", productRoutes);
+app.use("/api/chat", chatRoutes);
 app.use(cookieParser());
 
-app.get('/', (req, res) => {
-  res.send('API is running...');
+app.get("/", (req, res) => {
+  res.send("API is running...");
 });
-
 
 // ✅ Chỉ chạy listen() khi local, export app cho Vercel
 if (require.main === module) {
