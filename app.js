@@ -13,6 +13,8 @@ const companyRoutes = require('./routes/companyRoute');
 const categoriesRoutes = require('./routes/categoryRoute');
 const productRoutes = require('./routes/productRoute');
 const userProfileRoutes = require('./routes/userProfileRoute');
+const cartRoutes = require('./routes/cartRoute')
+const paymentRoutes = require('./routes/paymentRoute')
 
 const port = process.env.PORT || 3000;
 
@@ -29,6 +31,9 @@ app.use('/api/user/profile', userProfileRoutes);
 app.use('/api/company', companyRoutes);
 app.use('/api/categories', categoriesRoutes);
 app.use('/api/products', productRoutes);
+//api cart & payment(demo)
+app.use('/api/cart', cartRoutes);
+app.use('/api/payment', paymentRoutes);
 app.use(cookieParser());
 
 app.get('/', (req, res) => {
