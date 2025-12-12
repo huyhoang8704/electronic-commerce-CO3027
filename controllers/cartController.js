@@ -1,12 +1,10 @@
 const Cart = require("../models/Cart.js");
 const Product = require("../models/Product.js");
-const Voucher = require("../models/Voucher.js");
 
 //[GET] /card
 module.exports.index = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { code } = req.body;
 
     const cart = await Cart.findOne({ user_id: userId });
     if (!cart || cart.products.length === 0)
@@ -32,44 +30,11 @@ module.exports.index = async (req, res) => {
       });
     }
 
-    // const voucher = await Voucher.findOne({ code: code.toUpperCase(), active: true });
-    // if (!voucher) return res.status(400).json({ message: "Invalid voucher code" });
-
-    // //Check expired date
-    // const now = new Date()
-    // if(voucher.startDate && voucher.startDate > now)
-    //     return res.status(400).json({ message: "Voucher not started yet" });
-    // if(voucher.endDate && voucher.endDate < now)
-    //     return res.status(400).json({ message: "Voucher expired" });
-    // if (voucher.quantity <= 0)
-    //     return res.status(400).json({ error: "Voucher out of stock" });
-    // if (total < voucher.minOrderValue)
-    //     return res.status(400).json({ error: `Order must be at least ${voucher.minOrderValue}` });
-
-    // // Calculate the new prices
-    // let discount = 0;
-    // if (voucher.discountType === "percent"){
-    //     discount = (voucher.discountValue / 100) * total;
-    //     if (voucher.maxDiscount && discount > voucher.maxDiscount)
-    //         discount = voucher.maxDiscount;
-    // } else if (voucher.discountType === "fixed"){
-    //     discount = voucher.discountValue
-    // }
-
-    // const finalTotal = Math.max(total - discount, 0);
-
     res.status(200).json({
       success: true,
-      // voucher: {
-      //     code: voucher.code,
-      //     type: voucher.discountType,
-      //     value: voucher.discountValue
-      // },
       products: productDetails,
       totalBefore: total,
-      // discount,
       totalAfter: total,
-      // message: `Voucher applied successfully (-${discount})`,
     });
   } catch (error) {
     console.log(error);
