@@ -1,3 +1,4 @@
+// routes/paymentRoutes.js
 const express = require("express");
 const router = express.Router();
 const paymentController = require("../controllers/paymentController");
@@ -5,51 +6,12 @@ const authToken = require("../middlewares/authTokenMiddleware");
 
 /**
  * @swagger
- * tags:
- *   name: Payment
- *   description: Payment and Checkout management
- */
-
-/**
- * @swagger
- * components:
- *   schemas:
- *     CheckoutRequest:
- *       type: object
- *       required:
- *         - amount
- *         - paymentMethod
- *       properties:
- *         amount:
- *           type: number
- *           example: 500000
- *         paymentMethod:
- *           type: string
- *           example: "momo"
- *         orderId:
- *           type: string
- *           example: "ORD123456"
- *         description:
- *           type: string
- *           example: "Thanh toán đơn hàng #ORD123456"
- *
- *     CheckoutResponse:
- *       type: object
- *       properties:
- *         payUrl:
- *           type: string
- *           example: "https://test-payment.momo.vn/pay?token=abcxyz"
- *         message:
- *           type: string
- *           example: "Checkout initialized successfully"
- */
-
-/**
- * @swagger
- * /api/payment/checkout:
+ * /payment/checkout:
  *   post:
- *     summary: Create a payment (checkout) session
- *     tags: [Payment]
+ *     tags:
+ *       - Payment
+ *     summary: Thanh toán đơn hàng
+ *     description: User cần đăng nhập để thực hiện thanh toán.
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -57,91 +19,82 @@ const authToken = require("../middlewares/authTokenMiddleware");
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/CheckoutRequest'
+ *             type: object
+ *             properties:
+ *               items:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     productId:
+ *                       type: string
+ *                     quantity:
+ *                       type: number
+ *               voucherCode:
+ *                 type: string
  *     responses:
  *       200:
- *         description: Checkout session created successfully
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/CheckoutResponse'
+ *         description: URL thanh toán MoMo
  *       400:
- *         description: Invalid request or missing fields
+ *         description: Dữ liệu không hợp lệ
  *       401:
  *         description: Unauthorized
+ *       500:
+ *         description: Lỗi server
  */
 router.post("/checkout", authToken, paymentController.checkout);
 
 /**
  * @swagger
- * /api/payment/momo/callback:
+ * /payment/validate-voucher:
  *   post:
- *     summary: MoMo payment callback (server-to-server)
- *     tags: [Payment]
+ *     tags:
+ *       - Payment
+ *     summary: Kiểm tra voucher hợp lệ
  *     security:
  *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
- *           example:
- *             orderId: "ORD123456"
- *             resultCode: 0
- *             message: "Successful"
- *             transId: "1234567890"
+ *           schema:
+ *             type: object
+ *             properties:
+ *               voucherCode:
+ *                 type: string
  *     responses:
  *       200:
- *         description: Callback received and processed successfully
- *         content:
- *           application/json:
- *             example:
- *               message: "Payment callback processed"
+ *         description: Voucher hợp lệ
  *       400:
- *         description: Invalid callback data
+ *         description: Voucher không hợp lệ
  *       401:
  *         description: Unauthorized
+ *       500:
+ *         description: Lỗi server
  */
-router.post("/momo/callback", authToken, paymentController.momoCallback);
+router.post("/validate-voucher", authToken, paymentController.validateVoucher);
 
 /**
  * @swagger
- * /api/payment/momo/redirect:
- *   get:
- *     summary: MoMo redirect after user completes payment
- *     tags: [Payment]
- *     parameters:
- *       - in: query
- *         name: orderId
- *         schema:
- *           type: string
- *         description: ID of the order
- *       - in: query
- *         name: resultCode
- *         schema:
- *           type: integer
- *         description: Payment result code (0 means success)
- *       - in: query
- *         name: message
- *         schema:
- *           type: string
- *         description: Message from MoMo payment gateway
+ * /payment/momo-callback:
+ *   post:
+ *     tags:
+ *       - Payment
+ *     summary: MoMo callback sau thanh toán
+ *     description: Endpoint để MoMo gửi thông báo thanh toán. Không yêu cầu authentication.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             additionalProperties: true
  *     responses:
  *       200:
- *         description: Redirect information returned successfully
- *         content:
- *           application/json:
- *             example:
- *               message: "redirect successfully"
- *               query:
- *                 orderId: "ORD123456"
- *                 resultCode: 0
- *                 message: "Successful"
+ *         description: Nhận callback thành công
+ *       500:
+ *         description: Lỗi xử lý callback
  */
-router.get("/momo/redirect", (req, res) => {
-  res.json({
-    message: "redirect successfully",
-    query: req.query,
-  });
-});
+router.post("/momo-callback", paymentController.momoCallback);
 
 module.exports = router;

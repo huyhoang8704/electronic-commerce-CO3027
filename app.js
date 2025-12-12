@@ -7,15 +7,17 @@ const morgan = require("morgan");
 const path = require("path");
 require("dotenv").config();
 
-const connectDB = require("./config/mongoDB");
-const swaggerDocs = require("./config/swagger");
-const authRoutes = require("./routes/authRoute");
-const companyRoutes = require("./routes/companyRoute");
-const categoriesRoutes = require("./routes/categoryRoute");
-const productRoutes = require("./routes/productRoute");
-const userProfileRoutes = require("./routes/userProfileRoute");
+const connectDB = require('./config/mongoDB');
+const swaggerDocs = require('./config/swagger');
+const authRoutes = require('./routes/authRoute');
+const companyRoutes = require('./routes/companyRoute');
+const categoriesRoutes = require('./routes/categoryRoute');
+const productRoutes = require('./routes/productRoute');
+const userProfileRoutes = require('./routes/userProfileRoute');
+const cartRoutes = require('./routes/cartRoute')
+const paymentRoutes = require('./routes/paymentRoute')
+const voucherRoutes = require('./routes/voucherRoute')
 const chatRoutes = require("./routes/chatRoute");
-const cartRoutes = require("./routes/cartRoute");
 
 const port = process.env.PORT || 3000;
 
@@ -28,12 +30,14 @@ app.use(morgan("dev"));
 
 swaggerDocs(app); // Initialize Swagger documentation
 
-app.use("/api/auth", authRoutes);
-app.use("/api/user/profile", userProfileRoutes);
-app.use("/api/cart", cartRoutes);
-app.use("/api/company", companyRoutes);
-app.use("/api/categories", categoriesRoutes);
-app.use("/api/products", productRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/user/profile', userProfileRoutes);
+app.use('/api/company', companyRoutes);
+app.use('/api/categories', categoriesRoutes);
+app.use('/api/products', productRoutes);
+app.use('/api/cart', cartRoutes);
+app.use('/api/payment', paymentRoutes);
+app.use('/api/voucher', voucherRoutes)
 app.use("/api/chat", chatRoutes);
 app.use(cookieParser());
 
