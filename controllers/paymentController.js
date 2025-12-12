@@ -10,15 +10,15 @@ module.exports.checkout = async (req, res) => {
   try {
     const userId = req.user.id;
     // const { code } = req.body;
-    const { selectedProducts } = req.body; 
+    const { selectedProducts } = req.body;
 
     if (!selectedProducts || selectedProducts.length === 0)
-        return res.status(400).json({ message: "No products selected" });
-  
+      return res.status(400).json({ message: "No products selected" });
+
     // Lấy giỏ hàng của user
     const cart = await Cart.findOne({ user_id: userId });
     if (!cart || cart.products.length === 0)
-        return res.status(400).json({ message: "Cart is empty" });
+      return res.status(400).json({ message: "Cart is empty" });
 
     // Tính tổng tiền
     let total = 0;
@@ -30,7 +30,9 @@ module.exports.checkout = async (req, res) => {
       );
       if (!productInCart) continue;
 
-      const product = await Product.findById(item.product_id).select("price name");
+      const product = await Product.findById(item.product_id).select(
+        "price name"
+      );
       if (!product) continue;
 
       total += product.price * productInCart.quantity;
@@ -57,7 +59,6 @@ module.exports.checkout = async (req, res) => {
     // }
 
     const amount = Math.max(total - discount, 0);
-    
 
     // Tạo yêu cầu thanh toán MoMo
     const partnerCode = momoConfig.partnerCode;
@@ -137,7 +138,10 @@ module.exports.momoCallback = async (req, res) => {
       await order.save();
 
       // Xóa giỏ hàng sau khi thanh toán thành công
-      await Cart.updateOne({ user_id: order.user_id }, { $set: { products: [] } });
+      await Cart.updateOne(
+        { user_id: order.user_id },
+        { $set: { products: [] } }
+      );
 
       return res.status(200).json({ message: "Payment success" });
     } else {

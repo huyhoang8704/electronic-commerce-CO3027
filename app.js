@@ -16,6 +16,7 @@ const productRoutes = require("./routes/productRoute");
 const userProfileRoutes = require("./routes/userProfileRoute");
 const chatRoutes = require("./routes/chatRoute");
 const cartRoutes = require("./routes/cartRoute");
+const paymentRoutes = require("./routes/paymentRoute");
 
 const port = process.env.PORT || 3000;
 
@@ -35,6 +36,7 @@ app.use("/api/company", companyRoutes);
 app.use("/api/categories", categoriesRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/chat", chatRoutes);
+app.use("/api/payment", paymentRoutes);
 app.use(cookieParser());
 
 app.get("/", (req, res) => {
