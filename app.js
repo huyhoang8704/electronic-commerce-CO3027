@@ -16,6 +16,7 @@ const userProfileRoutes = require('./routes/userProfileRoute');
 const cartRoutes = require('./routes/cartRoute')
 const paymentRoutes = require('./routes/paymentRoute')
 const voucherRoutes = require('./routes/voucherRoute')
+const orderRoutes = require("./routes/orderRoute");
 
 const port = process.env.PORT || 3000;
 
@@ -35,7 +36,8 @@ app.use('/api/products', productRoutes);
 //api cart & payment(demo)
 app.use('/api/cart', cartRoutes);
 app.use('/api/payment', paymentRoutes);
-app.use('/api/voucher', voucherRoutes)
+app.use('/api/vouchers', voucherRoutes);
+app.use("/api/orders", orderRoutes);
 
 app.use(cookieParser());
 
