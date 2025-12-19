@@ -10,39 +10,89 @@ const authToken = require("../middlewares/authTokenMiddleware");
  *   post:
  *     tags:
  *       - Payment
- *     summary: Thanh toán đơn hàng
- *     description: User cần đăng nhập để thực hiện thanh toán.
+ *     summary: Thanh toán đơn hàng bằng MoMo
+ *     description: |
+ *       User cần đăng nhập.
+ *       API tạo yêu cầu thanh toán MoMo từ các sản phẩm đã chọn trong giỏ hàng.
  *     security:
- *       - bearerAuth: []
+ *       - BearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - selectedProducts
  *             properties:
- *               items:
+ *               selectedProducts:
  *                 type: array
+ *                 description: Danh sách sản phẩm được chọn từ giỏ hàng
  *                 items:
  *                   type: object
+ *                   required:
+ *                     - product_id
  *                   properties:
- *                     productId:
+ *                     product_id:
  *                       type: string
- *                     quantity:
- *                       type: number
+ *                       example: 64f123abc456def789012345
  *               voucherCode:
  *                 type: string
+ *                 nullable: true
+ *                 example: SALE50
  *     responses:
  *       200:
- *         description: URL thanh toán MoMo
+ *         description: Tạo thanh toán MoMo thành công
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 payUrl:
+ *                   type: string
+ *                   example: https://test-payment.momo.vn/...
+ *                 orderId:
+ *                   type: string
+ *                   example: ORDER_1700000000000
+ *                 total:
+ *                   type: number
+ *                   example: 500000
+ *                 discount:
+ *                   type: number
+ *                   example: 50000
+ *                 finalAmount:
+ *                   type: number
+ *                   example: 450000
+ *                 voucher:
+ *                   type: object
+ *                   nullable: true
+ *                   properties:
+ *                     code:
+ *                       type: string
+ *                       example: SALE50
+ *                     discountAmount:
+ *                       type: number
+ *                       example: 50000
  *       400:
- *         description: Dữ liệu không hợp lệ
+ *         description: |
+ *           Dữ liệu không hợp lệ:
+ *           - Không có sản phẩm được chọn
+ *           - Giỏ hàng trống
+ *           - Sản phẩm không tồn tại trong giỏ
+ *           - Không đủ tồn kho
+ *           - Voucher không hợp lệ
  *       401:
- *         description: Unauthorized
+ *         description: Unauthorized (thiếu hoặc sai JWT)
+ *       404:
+ *         description: Không tìm thấy sản phẩm
  *       500:
- *         description: Lỗi server
+ *         description: Lỗi server / lỗi tạo thanh toán
  */
 router.post("/checkout", authToken, paymentController.checkout);
+
 
 /**
  * @swagger
