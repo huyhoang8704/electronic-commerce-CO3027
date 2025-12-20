@@ -48,7 +48,7 @@ const authRoleMiddleware = require("../middlewares/authRoleMiddleware");
  *           type: boolean
  *         usedCount:
  *           type: number
- * 
+ *
  *     ValidateRequest:
  *       type: object
  *       required:
@@ -61,7 +61,7 @@ const authRoleMiddleware = require("../middlewares/authRoleMiddleware");
  *         orderValue:
  *           type: number
  *           example: 500000
- * 
+ *
  *     UseVoucherRequest:
  *       type: object
  *       required:
@@ -70,7 +70,7 @@ const authRoleMiddleware = require("../middlewares/authRoleMiddleware");
  *         code:
  *           type: string
  *           example: "SUMMER50"
- * 
+ *
  *     CreateVoucherRequest:
  *       type: object
  *       required:
@@ -101,7 +101,7 @@ const authRoleMiddleware = require("../middlewares/authRoleMiddleware");
  *           type: number
  *         usageLimit:
  *           type: number
- * 
+ *
  *   securitySchemes:
  *     bearerAuth:
  *       type: http
@@ -113,7 +113,7 @@ const authRoleMiddleware = require("../middlewares/authRoleMiddleware");
 
 /**
  * @swagger
- * /vouchers/validate:
+ * /api/voucher/validate:
  *   post:
  *     summary: Kiểm tra voucher hợp lệ
  *     description: API public - kiểm tra voucher có thể sử dụng không
@@ -155,7 +155,7 @@ router.post("/validate", voucherController.validateVoucher);
 
 /**
  * @swagger
- * /vouchers/active:
+ * /api/voucher/active:
  *   get:
  *     summary: Lấy danh sách voucher đang hoạt động
  *     description: API public - ai cũng có thể xem voucher đang active
@@ -181,7 +181,7 @@ router.get("/active", voucherController.getActiveVouchers);
 
 /**
  * @swagger
- * /vouchers/use:
+ * /api/voucher/use:
  *   post:
  *     summary: Sử dụng voucher
  *     description: User đăng nhập mới được sử dụng voucher (tăng usedCount)
@@ -224,7 +224,7 @@ router.post("/use", authToken, voucherController.useVoucher);
 
 /**
  * @swagger
- * /vouchers:
+ * /api/voucher:
  *   post:
  *     summary: Tạo voucher mới (Admin only)
  *     description: Chỉ admin mới có quyền tạo voucher
@@ -258,11 +258,16 @@ router.post("/use", authToken, voucherController.useVoucher);
  *       403:
  *         description: Không có quyền admin
  */
-router.post("/", authToken, authRoleMiddleware.authorize('admin'), voucherController.createVoucher);
+router.post(
+  "/",
+  authToken,
+  authRoleMiddleware.authorize("admin"),
+  voucherController.createVoucher
+);
 
 /**
  * @swagger
- * /vouchers:
+ * /api/voucher:
  *   get:
  *     summary: Lấy tất cả voucher (Admin only)
  *     description: Chỉ admin mới có quyền xem tất cả voucher, có phân trang
@@ -328,11 +333,16 @@ router.post("/", authToken, authRoleMiddleware.authorize('admin'), voucherContro
  *       403:
  *         description: Không có quyền admin
  */
-router.get("/", authToken, authRoleMiddleware.authorize('admin'), voucherController.getAllVouchers);
+router.get(
+  "/",
+  authToken,
+  authRoleMiddleware.authorize("admin"),
+  voucherController.getAllVouchers
+);
 
 /**
  * @swagger
- * /vouchers/{id}:
+ * /api/voucher/{id}:
  *   get:
  *     summary: Lấy thông tin voucher theo ID (Admin only)
  *     tags: [Vouchers]
@@ -364,11 +374,16 @@ router.get("/", authToken, authRoleMiddleware.authorize('admin'), voucherControl
  *       404:
  *         description: Không tìm thấy voucher
  */
-router.get("/:id", authToken, authRoleMiddleware.authorize('admin'), voucherController.getVoucherById);
+router.get(
+  "/:id",
+  authToken,
+  authRoleMiddleware.authorize("admin"),
+  voucherController.getVoucherById
+);
 
 /**
  * @swagger
- * /vouchers/{id}:
+ * /api/voucher/{id}:
  *   put:
  *     summary: Cập nhật voucher (Admin only)
  *     tags: [Vouchers]
@@ -431,11 +446,16 @@ router.get("/:id", authToken, authRoleMiddleware.authorize('admin'), voucherCont
  *       404:
  *         description: Không tìm thấy voucher
  */
-router.put("/:id", authToken, authRoleMiddleware.authorize('admin'), voucherController.updateVoucher);
+router.put(
+  "/:id",
+  authToken,
+  authRoleMiddleware.authorize("admin"),
+  voucherController.updateVoucher
+);
 
 /**
  * @swagger
- * /vouchers/{id}:
+ * /api/voucher/{id}:
  *   delete:
  *     summary: Xóa/vô hiệu hóa voucher (Admin only)
  *     description: Soft delete - chỉ set active = false
@@ -468,11 +488,16 @@ router.put("/:id", authToken, authRoleMiddleware.authorize('admin'), voucherCont
  *       404:
  *         description: Không tìm thấy voucher
  */
-router.delete("/:id", authToken, authRoleMiddleware.authorize('admin'), voucherController.deleteVoucher);
+router.delete(
+  "/:id",
+  authToken,
+  authRoleMiddleware.authorize("admin"),
+  voucherController.deleteVoucher
+);
 
 /**
  * @swagger
- * /vouchers/{id}/activate:
+ * /api/voucher/{id}/activate:
  *   put:
  *     summary: Kích hoạt lại voucher (Admin only)
  *     description: Kích hoạt voucher đã bị vô hiệu hóa
@@ -507,6 +532,11 @@ router.delete("/:id", authToken, authRoleMiddleware.authorize('admin'), voucherC
  *       404:
  *         description: Không tìm thấy voucher
  */
-router.put("/:id/activate", authToken, authRoleMiddleware.authorize('admin'), voucherController.activateVoucher);
+router.put(
+  "/:id/activate",
+  authToken,
+  authRoleMiddleware.authorize("admin"),
+  voucherController.activateVoucher
+);
 
 module.exports = router;

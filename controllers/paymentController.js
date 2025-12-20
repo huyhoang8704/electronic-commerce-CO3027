@@ -203,6 +203,21 @@ module.exports.checkout = async (req, res) => {
     const partnerCode = momoConfig.partnerCode;
     const accessKey = momoConfig.accessKey;
     const secretKey = momoConfig.secretKey;
+
+    // Validate MoMo configuration
+    if (!partnerCode || !accessKey || !secretKey) {
+      console.error("❌ MoMo configuration is missing:", {
+        partnerCode: !!partnerCode,
+        accessKey: !!accessKey,
+        secretKey: !!secretKey,
+      });
+      return res.status(500).json({
+        success: false,
+        message:
+          "Cấu hình thanh toán MoMo chưa đầy đủ. Vui lòng liên hệ quản trị viên.",
+      });
+    }
+
     const requestId = partnerCode + Date.now();
     const orderId = "ORDER_" + Date.now();
     const orderInfo = "Thanh toán đơn hàng";
@@ -443,6 +458,98 @@ module.exports.validateVoucher = async (req, res) => {
     res.status(500).json({
       success: false,
       error: "Lỗi kiểm tra voucher",
+      details: error.message,
+    });
+  }
+};
+
+// Redirect URL - Xử lý khi user quay về từ MoMo
+module.exports.momoRedirect = async (req, res) => {
+  try {
+    const {
+      orderId,
+      resultCode,
+      message,
+      amount,
+      extraData,
+      signature,
+      requestId,
+    } = req.query;
+
+    console.log("MoMo redirect received:", {
+      orderId,
+      resultCode,
+      message,
+      amount,
+    });
+
+    // Tìm đơn hàng
+    const order = await Order.findOne({ orderId });
+
+    if (!order) {
+      // Redirect về frontend với lỗi
+      return res.redirect(
+        `http://localhost:5173/cart?payment=error&message=Không tìm thấy đơn hàng`
+      );
+    }
+
+    // Kiểm tra kết quả thanh toán
+    if (resultCode === "0") {
+      // Thanh toán thành công - redirect về cart với thông báo success
+      return res.redirect(
+        `http://localhost:5173/cart?payment=success&orderId=${orderId}&amount=${amount}`
+      );
+    } else {
+      // Thanh toán thất bại - redirect về cart với thông báo lỗi
+      return res.redirect(
+        `http://localhost:5173/cart?payment=error&orderId=${orderId}&message=${encodeURIComponent(
+          message || "Thanh toán thất bại"
+        )}`
+      );
+    }
+  } catch (error) {
+    console.error("MoMo redirect error:", error);
+    return res.redirect(
+      `http://localhost:5173/cart?payment=error&message=Lỗi xử lý thanh toán`
+    );
+  }
+};
+
+// API kiểm tra trạng thái đơn hàng
+module.exports.checkOrderStatus = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const userId = req.user.id;
+
+    const order = await Order.findOne({ orderId, user_id: userId });
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: "Không tìm thấy đơn hàng",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: {
+        orderId: order.orderId,
+        status: order.status,
+        paymentStatus: order.paymentStatus,
+        totalAmount: order.totalAmount,
+        discount: order.discount,
+        finalAmount: order.finalAmount,
+        products: order.products,
+        voucherData: order.voucherData,
+        createdAt: order.createdAt,
+        paidAt: order.paidAt,
+      },
+    });
+  } catch (error) {
+    console.error("Check order status error:", error);
+    res.status(500).json({
+      success: false,
+      error: "Lỗi kiểm tra trạng thái đơn hàng",
       details: error.message,
     });
   }

@@ -93,7 +93,6 @@ const authToken = require("../middlewares/authTokenMiddleware");
  */
 router.post("/checkout", authToken, paymentController.checkout);
 
-
 /**
  * @swagger
  * /payment/validate-voucher:
@@ -146,5 +145,63 @@ router.post("/validate-voucher", authToken, paymentController.validateVoucher);
  *         description: Lỗi xử lý callback
  */
 router.post("/momo-callback", paymentController.momoCallback);
+
+/**
+ * @swagger
+ * /payment/momo/redirect:
+ *   get:
+ *     tags:
+ *       - Payment
+ *     summary: MoMo redirect sau khi user thanh toán
+ *     description: Endpoint để MoMo redirect user về sau khi thanh toán
+ *     parameters:
+ *       - in: query
+ *         name: orderId
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: resultCode
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: message
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: amount
+ *         schema:
+ *           type: number
+ *     responses:
+ *       302:
+ *         description: Redirect về frontend
+ */
+router.get("/momo/redirect", paymentController.momoRedirect);
+
+/**
+ * @swagger
+ * /payment/order/{orderId}:
+ *   get:
+ *     tags:
+ *       - Payment
+ *     summary: Kiểm tra trạng thái đơn hàng
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: orderId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Thông tin đơn hàng
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Không tìm thấy đơn hàng
+ *       500:
+ *         description: Lỗi server
+ */
+router.get("/order/:orderId", authToken, paymentController.checkOrderStatus);
 
 module.exports = router;
