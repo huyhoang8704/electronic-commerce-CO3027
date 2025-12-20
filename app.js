@@ -18,6 +18,7 @@ const cartRoutes = require("./routes/cartRoute");
 const paymentRoutes = require("./routes/paymentRoute");
 const voucherRoutes = require("./routes/voucherRoute");
 const chatRoutes = require("./routes/chatRoute");
+const orderRoutes = require("./routes/orderRoute");
 
 const port = process.env.PORT || 3000;
 
@@ -37,9 +38,9 @@ app.use("/api/categories", categoriesRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/payment", paymentRoutes);
-app.use("/api/voucher", voucherRoutes);
+app.use("/api/vouchers", voucherRoutes);
 app.use("/api/chat", chatRoutes);
-app.use("/api/payment", paymentRoutes);
+app.use("/api/orders", orderRoutes);
 app.use(cookieParser());
 
 app.get("/", (req, res) => {
