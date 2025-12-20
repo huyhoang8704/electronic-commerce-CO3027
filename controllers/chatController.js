@@ -28,19 +28,22 @@ exports.chatWithGemini = async (req, res) => {
         role: msg.role,
         parts: [{ text: msg.content }],
       })),
-      generationConfig: { maxOutputTokens: 500 },
+      generationConfig: { maxOutputTokens: 10000 },
     });
 
     const result = await chat.sendMessage(message);
-    const responseText = result.response.text();
+    console.log("result", result);
+    const responseText = result.response.candidates[0].content.parts
+      .map(p => p.text)
+      .join("");
 
     // Lưu user message và model reply vào DB
-    chatHistory.messages.push({ role: "user", content: message });
-    chatHistory.messages.push({ role: "model", content: responseText });
-    if (chatHistory.messages.length > 50) {
-    chatHistory.messages = chatHistory.messages.slice(-50);
-    }
-    await chatHistory.save();
+    // chatHistory.messages.push({ role: "user", content: message });
+    // chatHistory.messages.push({ role: "model", content: responseText });
+    // if (chatHistory.messages.length > 50) {
+    // chatHistory.messages = chatHistory.messages.slice(-50);
+    // }
+    // await chatHistory.save();
 
     return res.json({
       success: true,
