@@ -1,9 +1,10 @@
 const Order = require("../models/Order");
 const ORDER_STATUS_FLOW = {
-  pending: ["processing", "cancelled", "failed"],
-  processing: ["shipped", "cancelled"],
-  shipped: ["delivered", "failed"],
-  delivered: [],
+  pending: ["in_progress", "cancelled", "failed"],
+  in_progress: ["delivered", "cancelled", "failed"],
+  delivered: ["maintenance", "completed"],
+  maintenance: ["completed"],
+  completed: [],
   cancelled: [],
   failed: []
 };
@@ -82,7 +83,7 @@ exports.updateOrderStatus = async (req, res) => {
     }
 
     //  Không cho update nếu đơn đã kết thúc
-    if (["delivered", "cancelled", "failed"].includes(order.status)) {
+    if (["completed", "cancelled", "failed"].includes(order.status)) {
       return res.status(400).json({
         success: false,
         message: `Đơn hàng đã ở trạng thái "${order.status}", không thể cập nhật`
