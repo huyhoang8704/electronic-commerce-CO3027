@@ -12,12 +12,46 @@ const ORDER_STATUS_FLOW = {
 // Lấy lịch sử đơn hàng của user đang đăng nhập
 exports.getMyOrders = async (req, res) => {
   try {
-    const userId = req.user.id; // lấy từ JWT
+    const userId = req.user.id;
 
-    const orders = await Order.find({ user_id: userId })
+    const { keyword, status, fromDate, toDate } = req.query;
+
+    // Base filter
+    const filter = {
+      user_id: userId
+    };
+
+    //Lọc theo trạng thái đơn hàng
+    if (status) {
+      filter.status = status;
+    }
+
+    //Lọc theo ngày đặt hàng
+    if (fromDate || toDate) {
+      filter.createdAt = {};
+      if (fromDate) {
+        filter.createdAt.$gte = new Date(fromDate);
+      }
+      if (toDate) {
+        filter.createdAt.$lte = new Date(toDate);
+      }
+    }
+
+    let orders = await Order.find(filter)
       .sort({ createdAt: -1 })
       .populate("products.product_id", "name price")
       .lean();
+
+    //Tìm kiếm theo tên sản phẩm (sau populate)
+    if (keyword) {
+      const regex = new RegExp(keyword, "i");
+
+      orders = orders.filter(order =>
+        order.products.some(p =>
+          regex.test(p.product_id?.name)
+        )
+      );
+    }
 
     return res.status(200).json({
       success: true,
@@ -32,6 +66,7 @@ exports.getMyOrders = async (req, res) => {
     });
   }
 };
+
 
 exports.updateOrderStatus = async (req, res) => {
   try {
