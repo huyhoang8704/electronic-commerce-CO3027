@@ -21,7 +21,13 @@ const orderSchema = new mongoose.Schema({
   finalAmount: { type: Number, required: true }, // Tổng tiền sau giảm giá
   status: { 
     type: String, 
-    enum: ["pending", "processing", "shipped", "delivered", "cancelled", "failed"],
+    enum: ["pending",        // Đang xử lý
+    "in_progress",    // Đang phát triển
+    "delivered",      // Đã bàn giao
+    "maintenance",    // Bảo trì
+    "completed",      // Đã hoàn tất
+    "cancelled",
+    "failed"],
     default: "pending"
   },
   paymentMethod: { type: String, enum: ["momo", "cash", "bank"], default: "momo" },
