@@ -23,7 +23,8 @@ module.exports.index = async (req, res) => {
 
       productDetails.push({
         productId: product._id,
-        productName: product.title,
+        productName: product.name,
+        price: product.price,
         image: product.images,
         totalItemPrice,
         quantity: item.quantity,

@@ -317,6 +317,41 @@ module.exports.checkout = async (req, res) => {
 };
 
 // Callback từ MoMo - Xử lý sau khi thanh toán
+// [GET] Check order status - cho frontend check
+module.exports.checkOrderStatus = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+
+    const order = await Order.findOne({ orderId });
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: "Không tìm thấy đơn hàng",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      order: {
+        orderId: order.orderId,
+        status: order.status,
+        paymentStatus: order.paymentStatus,
+        finalAmount: order.finalAmount,
+        paidAt: order.paidAt,
+        failureReason: order.failureReason,
+      },
+    });
+  } catch (error) {
+    console.error("Check order status error:", error);
+    res.status(500).json({
+      success: false,
+      error: "Lỗi kiểm tra trạng thái đơn hàng",
+      details: error.message,
+    });
+  }
+};
+
+// Callback từ MoMo - Xử lý sau khi thanh toán
 module.exports.momoCallback = async (req, res) => {
   try {
     const { orderId, resultCode, message, amount, extraData } = req.body;
@@ -340,7 +375,7 @@ module.exports.momoCallback = async (req, res) => {
     if (resultCode === 0) {
       // Thanh toán thành công
       // Cập nhật trạng thái đơn hàng
-      order.status = "processing";
+      order.status = "in_progress";
       order.paymentStatus = "paid";
       order.paidAt = new Date();
       await order.save();
@@ -382,10 +417,16 @@ module.exports.momoCallback = async (req, res) => {
 
       // TODO: Gửi email xác nhận đơn hàng
 
+      // Redirect về trang thành công
+      const successUrl = `${
+        process.env.CLIENT_URL || "http://localhost:3000"
+      }/payment/success?orderId=${order.orderId}&amount=${amount}`;
+
       return res.status(200).json({
         success: true,
         message: "Thanh toán thành công",
         orderId: order.orderId,
+        redirectUrl: successUrl,
       });
     } else {
       // Thanh toán thất bại
@@ -402,10 +443,18 @@ module.exports.momoCallback = async (req, res) => {
         );
       }
 
+      // Redirect về trang thất bại
+      const failureUrl = `${
+        process.env.CLIENT_URL || "http://localhost:3000"
+      }/payment/failure?orderId=${order.orderId}&reason=${encodeURIComponent(
+        message
+      )}`;
+
       return res.status(400).json({
         success: false,
         message: "Thanh toán thất bại: " + message,
         orderId: order.orderId,
+        redirectUrl: failureUrl,
       });
     }
   } catch (error) {
