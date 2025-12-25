@@ -530,7 +530,7 @@ module.exports.momoRedirect = async (req, res) => {
     console.log("OrderId from MoMo:", orderId);
     console.log("ResultCode:", resultCode);
 
-    const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
+    const clientUrl = process.env.CLIENT_URL;
 
     // Tìm đơn hàng
     const order = await Order.findOne({ orderId });
@@ -564,7 +564,7 @@ module.exports.momoRedirect = async (req, res) => {
     }
   } catch (error) {
     console.error("MoMo redirect error:", error);
-    const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
+    const clientUrl = process.env.CLIENT_URL;
     return res.redirect(
       `${clientUrl}/payment/failure?orderId=${
         req.query.orderId || "UNKNOWN"
