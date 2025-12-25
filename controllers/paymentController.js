@@ -529,20 +529,18 @@ module.exports.momoRedirect = async (req, res) => {
     console.log("Full query params:", req.query);
     console.log("OrderId from MoMo:", orderId);
     console.log("ResultCode:", resultCode);
-    console.log("Message:", message);
-    console.log("Amount:", amount);
+
+    const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
 
     // Tìm đơn hàng
     const order = await Order.findOne({ orderId });
 
     console.log("Order lookup result:", order ? "FOUND" : "NOT FOUND");
-    console.log("Searching for orderId:", orderId);
 
     if (!order) {
       console.log("⚠️ Order not found in database - redirecting to failure");
-      // Redirect về frontend với lỗi rõ ràng
       return res.redirect(
-        `http://localhost:5173/payment/failure?orderId=${orderId}&reason=${encodeURIComponent(
+        `${clientUrl}/payment/failure?orderId=${orderId}&reason=${encodeURIComponent(
           "Order not found"
         )}`
       );
@@ -550,24 +548,27 @@ module.exports.momoRedirect = async (req, res) => {
 
     // Kiểm tra kết quả thanh toán
     if (resultCode === "0") {
-      // Thanh toán thành công - redirect về success page
+      // Thanh toán thành công
       console.log("✅ Payment successful - redirecting to success page");
       return res.redirect(
-        `http://localhost:5173/payment/success?orderId=${orderId}&amount=${amount}`
+        `${clientUrl}/payment/success?orderId=${orderId}&amount=${amount}`
       );
     } else {
-      // Thanh toán thất bại - redirect về failure page
+      // Thanh toán thất bại
       console.log("❌ Payment failed - redirecting to failure page");
       return res.redirect(
-        `http://localhost:5173/payment/failure?orderId=${orderId}&reason=${encodeURIComponent(
+        `${clientUrl}/payment/failure?orderId=${orderId}&reason=${encodeURIComponent(
           message || "Thanh toán thất bại"
         )}`
       );
     }
   } catch (error) {
     console.error("MoMo redirect error:", error);
+    const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
     return res.redirect(
-      `http://localhost:5173/cart?payment=error&message=Lỗi xử lý thanh toán`
+      `${clientUrl}/payment/failure?orderId=${
+        req.query.orderId || "UNKNOWN"
+      }&reason=${encodeURIComponent("Lỗi xử lý thanh toán")}`
     );
   }
 };
