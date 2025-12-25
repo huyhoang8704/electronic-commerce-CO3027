@@ -148,7 +148,7 @@ router.post("/momo-callback", paymentController.momoCallback);
 
 /**
  * @swagger
- * /payment/momo/redirect:
+ * /payment/momo-redirect:
  *   get:
  *     tags:
  *       - Payment
@@ -175,7 +175,7 @@ router.post("/momo-callback", paymentController.momoCallback);
  *       302:
  *         description: Redirect về frontend
  */
-router.get("/momo/redirect", paymentController.momoRedirect);
+router.get("/momo-redirect", paymentController.momoRedirect);
 
 /**
  * @swagger

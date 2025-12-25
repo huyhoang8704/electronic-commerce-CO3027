@@ -525,33 +525,41 @@ module.exports.momoRedirect = async (req, res) => {
       requestId,
     } = req.query;
 
-    console.log("MoMo redirect received:", {
-      orderId,
-      resultCode,
-      message,
-      amount,
-    });
+    console.log("=== MoMo redirect received ===");
+    console.log("Full query params:", req.query);
+    console.log("OrderId from MoMo:", orderId);
+    console.log("ResultCode:", resultCode);
+    console.log("Message:", message);
+    console.log("Amount:", amount);
 
     // Tìm đơn hàng
     const order = await Order.findOne({ orderId });
 
+    console.log("Order lookup result:", order ? "FOUND" : "NOT FOUND");
+    console.log("Searching for orderId:", orderId);
+
     if (!order) {
-      // Redirect về frontend với lỗi
+      console.log("⚠️ Order not found in database - redirecting to failure");
+      // Redirect về frontend với lỗi rõ ràng
       return res.redirect(
-        `http://localhost:5173/cart?payment=error&message=Không tìm thấy đơn hàng`
+        `http://localhost:5173/payment/failure?orderId=${orderId}&reason=${encodeURIComponent(
+          "Order not found"
+        )}`
       );
     }
 
     // Kiểm tra kết quả thanh toán
     if (resultCode === "0") {
-      // Thanh toán thành công - redirect về cart với thông báo success
+      // Thanh toán thành công - redirect về success page
+      console.log("✅ Payment successful - redirecting to success page");
       return res.redirect(
-        `http://localhost:5173/cart?payment=success&orderId=${orderId}&amount=${amount}`
+        `http://localhost:5173/payment/success?orderId=${orderId}&amount=${amount}`
       );
     } else {
-      // Thanh toán thất bại - redirect về cart với thông báo lỗi
+      // Thanh toán thất bại - redirect về failure page
+      console.log("❌ Payment failed - redirecting to failure page");
       return res.redirect(
-        `http://localhost:5173/cart?payment=error&orderId=${orderId}&message=${encodeURIComponent(
+        `http://localhost:5173/payment/failure?orderId=${orderId}&reason=${encodeURIComponent(
           message || "Thanh toán thất bại"
         )}`
       );
